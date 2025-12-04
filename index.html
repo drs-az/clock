@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>The Santos Clock</title>
+<title>Algebra Time</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
@@ -93,7 +93,7 @@
 <body>
 
 <div class="box">
-  <h1>The Santos Clock</h1>
+  <h1>Algebra Time</h1>
 
   <div id="hoursEq" class="equation"></div>
   <div id="minutesEq" class="equation"></div>
@@ -153,27 +153,47 @@ function to12Hour(h) {
 
 /* -------------------------
    EQUATION GENERATORS
+   ALL EQUATIONS NOW SHOW THE VALUE OF THE VARIABLE
 ------------------------- */
+
+// LINEAR example:
+// (ax + b) / c = ?   where x = (shown value)
 function linearEq(value, v) {
-  const a = randInt(1, 9);
-  const c = randInt(1, 9);
-  const x = randInt(1, 9);
-  const b = value * c - a * x;
-  return `(${a}${v} + ${b}) / ${c} = ?`;
+  const c = randInt(1, 4);
+  const xVal = randInt(2, 9);
+  const a = randInt(1, 6);
+  const b = value * c - a * xVal;
+
+  return {
+    text: `(${a}${v} + ${b}) / ${c} = ?   (where ${v} = ${xVal})`,
+    xVal
+  };
 }
 
+// FRACTIONAL example:
+// a + (b / x) = ?   where x = (shown value)
 function fractionalEq(value, v) {
-  const x = randInt(2, 9);
+  const xVal = randInt(2, 9);
   const a = randInt(0, value);
-  const b = (value - a) * x;
-  return `${a} + (${b} / ${x}) = ?`;
+  const b = (value - a) * xVal;
+
+  return {
+    text: `${a} + (${b} / ${xVal}) = ?   (where ${v} = ${xVal})`,
+    xVal
+  };
 }
 
+// QUADRATIC example:
+// (x² - k) / m = ?   where x = (shown)
 function quadraticEq(value, v) {
-  const m = randInt(1, 5);
-  const x = randInt(2, 9);
-  const k = x*x - value*m;
-  return `(${v}² - ${k}) / ${m} = ?   (where ${v} = ${x})`;
+  const m = randInt(1, 4);
+  const xVal = randInt(2, 9);
+  const k = xVal*xVal - value*m;
+
+  return {
+    text: `(${v}² - ${k}) / ${m} = ?   (where ${v} = ${xVal})`,
+    xVal
+  };
 }
 
 const types = [linearEq, fractionalEq, quadraticEq];
@@ -194,7 +214,6 @@ function updateClock() {
 
   updateSky();
 
-  // Only regenerate equations when minute changes
   if (minutes !== lastMinute) {
     lastMinute = minutes;
 
@@ -206,10 +225,11 @@ function updateClock() {
     const minEq  = types[randInt(0, types.length - 1)](minutes, "y");
 
     document.getElementById("hoursEq").innerHTML =
-      `Hour → <strong>${hourEq}</strong>`;
+      `Hour → <strong>${hourEq.text}</strong>`;
     document.getElementById("minutesEq").innerHTML =
-      `Minutes → <strong>${minEq}</strong>`;
-    document.getElementById("ampm").innerHTML = `Period → ${period}`;
+      `Minutes → <strong>${minEq.text}</strong>`;
+    document.getElementById("ampm").innerHTML =
+      `Period → <strong>${period}</strong>`;
 
     document.getElementById("result").innerHTML = "";
     document.getElementById("hourInput").value = "";
