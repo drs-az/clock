@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8">
 <title>Algebra Time</title>
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
   :root {
-    --bg1: #87ceeb;   /* day fallback */
+    --bg1: #87ceeb;
     --bg2: #fefcea;
   }
 
@@ -18,8 +18,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    animation: shiftSky 30s linear infinite;
-    transition: background 1s linear;
+    transition: background 1.2s linear;
     background: linear-gradient(to bottom, var(--bg1), var(--bg2));
   }
 
@@ -27,8 +26,8 @@
     background: rgba(255,255,255,0.2);
     padding: 2.5rem 3rem;
     border-radius: 1.5rem;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
     backdrop-filter: blur(10px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
     text-align: center;
     max-width: 700px;
     width: 90%;
@@ -37,7 +36,6 @@
   h1 {
     margin: 0 0 1rem;
     font-size: 2rem;
-    letter-spacing: 0.04em;
   }
 
   .equation {
@@ -45,17 +43,6 @@
     font-weight: 600;
     margin: 1.3rem 0;
     line-height: 2.3rem;
-  }
-
-  .plain {
-    margin-top: 1.5rem;
-    font-size: 1rem;
-    color: #333;
-  }
-
-  @keyframes shiftSky {
-    from { filter: brightness(1); }
-    to   { filter: brightness(1); }
   }
 </style>
 </head>
@@ -67,51 +54,39 @@
   <div id="hoursEq" class="equation"></div>
   <div id="minutesEq" class="equation"></div>
   <div id="ampm" class="equation"></div>
-
-  <div class="plain" id="plain"></div>
 </div>
 
 <script>
-/* ----------------------
-   TIME → SKY BACKGROUND
-   ---------------------- */
+/* -------------------------
+   SKY BACKGROUND
+------------------------- */
 function updateSky() {
-  const now = new Date();
-  const hour = now.getHours();
-
-  // Colors for different times:
-  // Dawn → Morning → Noon → Sunset → Night
+  const hour = new Date().getHours();
   let top, bottom;
 
   if (hour >= 5 && hour < 8) {
-    // Dawn
-    top = "#ff9a9e";
-    bottom = "#fad0c4";
+    top="#ff9a9e"; bottom="#fad0c4";      // dawn
   } else if (hour >= 8 && hour < 12) {
-    // Morning
-    top = "#87ceeb";
-    bottom = "#fefcea";
+    top="#87ceeb"; bottom="#fefcea";      // morning
   } else if (hour >= 12 && hour < 17) {
-    // Afternoon
-    top = "#78c1f3";
-    bottom = "#e0f7fa";
+    top="#78c1f3"; bottom="#e0f7fa";      // afternoon
   } else if (hour >= 17 && hour < 20) {
-    // Sunset
-    top = "#f6d365";
-    bottom = "#fda085";
+    top="#f6d365"; bottom="#fda085";      // sunset
   } else {
-    // Night
-    top = "#0f2027";
-    bottom = "#203a43";
+    top="#0f2027"; bottom="#203a43";      // night
   }
 
   document.documentElement.style.setProperty("--bg1", top);
   document.documentElement.style.setProperty("--bg2", bottom);
 }
 
-/* ----------------------
-   TIME CONVERSION
-   ---------------------- */
+/* -------------------------
+   UTILITIES
+------------------------- */
+function randInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 function to12Hour(h) {
   const period = h >= 12 ? "PM" : "AM";
   let hour = h % 12;
@@ -119,32 +94,24 @@ function to12Hour(h) {
   return { hour, period };
 }
 
-function randInt(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-/* ----------------------
-   EQUATION TYPES
-   ---------------------- */
-
-// LINEAR: (a·x + b) / c = value
+/* -------------------------
+   EQUATION GENERATORS
+------------------------- */
 function linearEq(value, v) {
   const a = randInt(1, 9);
   const c = randInt(1, 9);
   const x = randInt(1, 9);
-  const b = value * c - a * x;  
+  const b = value * c - a * x;
   return `(${a}${v} + ${b}) / ${c} = ?`;
 }
 
-// FRACTIONAL: a + (b / x) = value
 function fractionalEq(value, v) {
   const x = randInt(2, 9);
   const a = randInt(0, value);
-  const b = (value - a) * x;  
+  const b = (value - a) * x;
   return `${a} + (${b} / ${x}) = ?`;
 }
 
-// SIMPLE QUADRATIC: (x² - k) / m = value
 function quadraticEq(value, v) {
   const m = randInt(1, 5);
   const x = randInt(2, 9);
@@ -152,36 +119,40 @@ function quadraticEq(value, v) {
   return `(${v}² - ${k}) / ${m} = ?   (where ${v} = ${x})`;
 }
 
-const equationTypes = [linearEq, fractionalEq, quadraticEq];
+const types = [linearEq, fractionalEq, quadraticEq];
 
-/* ----------------------
-   MAIN CLOCK LOGIC
-   ---------------------- */
+/* -------------------------
+   MAIN LOGIC
+------------------------- */
+let lastMinute = -1;
+
 function updateClock() {
   const now = new Date();
   const hours24 = now.getHours();
   const minutes = now.getMinutes();
-  
   const { hour, period } = to12Hour(hours24);
 
-  // Randomly pick equation type for hours/minutes
-  const hourEq = equationTypes[randInt(0, equationTypes.length - 1)](hour, "x");
-  const minEq  = equationTypes[randInt(0, equationTypes.length - 1)](minutes, "y");
-
-  document.getElementById("hoursEq").innerHTML =
-    `Hour → <strong>${hourEq}</strong>`;
-  document.getElementById("minutesEq").innerHTML =
-    `Minutes → <strong>${minEq}</strong>`;
-  document.getElementById("ampm").innerHTML = `Period → ${period}`;
-
-  document.getElementById("plain").innerHTML =
-    `Actual Time: ${String(hour).padStart(2,"0")}:${String(minutes).padStart(2,"0")} ${period}`;
-
   updateSky();
+
+  // Only regenerate equations when the minute changes
+  if (minutes !== lastMinute) {
+    lastMinute = minutes;
+
+    const hourEq = types[randInt(0, types.length - 1)](hour, "x");
+    const minEq  = types[randInt(0, types.length - 1)](minutes, "y");
+
+    document.getElementById("hoursEq").innerHTML =
+      `Hour → <strong>${hourEq}</strong>`;
+
+    document.getElementById("minutesEq").innerHTML =
+      `Minutes → <strong>${minEq}</strong>`;
+
+    document.getElementById("ampm").innerHTML = `Period → ${period}`;
+  }
 }
 
-updateClock();
 setInterval(updateClock, 1000);
+updateClock();
 </script>
 
 </body>
